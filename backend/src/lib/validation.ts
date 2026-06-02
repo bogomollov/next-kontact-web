@@ -8,16 +8,6 @@ export const LoginFormSchema = z.object({
     .trim(),
 });
 
-export type FormLoginState =
-  | {
-      errors?: {
-        email?: string[];
-        password?: string[];
-      };
-      message?: string;
-    }
-  | undefined;
-
 export const RegisterFormSchema = z.object({
   firstName: z
     .string()
@@ -39,20 +29,6 @@ export const RegisterFormSchema = z.object({
     .trim(),
 });
 
-export type FormRegisterState =
-  | {
-      errors?: {
-        firstName?: string[];
-        lastName?: string[];
-        middleName?: string[];
-        email?: string[];
-        username?: string[];
-        password?: string[];
-      };
-      message?: string;
-    }
-  | undefined;
-
 export const UserFormSchema = z.object({
   account_id: z.string().trim(),
   firstName: z
@@ -73,18 +49,6 @@ export const UserFormSchema = z.object({
     .optional(),
 });
 
-export type UserFormState =
-  | {
-      errors?: {
-        account_id?: string[];
-        firstName?: string[];
-        lastName?: string[];
-        middleName?: string[];
-      };
-      message?: string;
-    }
-  | undefined;
-
 export const AccountFormSchema = z.object({
   account_id: z.string().trim(),
   username: z
@@ -98,18 +62,6 @@ export const AccountFormSchema = z.object({
     .optional(),
   phone: z.string().optional(),
 });
-
-export type AccountFormState =
-  | {
-      errors?: {
-        account_id?: string[];
-        username?: string[];
-        email?: string[];
-        phone?: string[];
-      };
-      message?: string;
-    }
-  | undefined;
 
 export const PasswordFormSchema = z.object({
   account_id: z.string().trim(),
@@ -126,15 +78,3 @@ export const PasswordFormSchema = z.object({
     .min(3, { message: "Минимальная длина пароля 3 символа" })
     .trim(),
 });
-
-export type PasswordFormState =
-  | {
-      errors?: {
-        account_id?: string[];
-        currentPassword?: string[];
-        newPassword?: string[];
-        repeatPassword?: string[];
-      };
-      message?: string;
-    }
-  | undefined;

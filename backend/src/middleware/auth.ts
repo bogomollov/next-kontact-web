@@ -1,9 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { decrypt, SessionPayload } from "../lib/session";
-import { createClient } from "redis";
-import { PrismaClient } from "../generated/prisma/client";
-
-const prisma = new PrismaClient();
+import { redis } from "../lib/redis";
+import { prisma } from "../lib/prisma";
 
 declare global {
   namespace Express {
@@ -29,26 +27,16 @@ export async function isAuth(req: Request, res: Response, next: NextFunction) {
       res.status(403).json({ message: "Недействительный токен" });
       return;
     }
-    req.token = payload;
 
-    const redis = await createClient({
-      url: "redis://@127.0.0.1",
-    })
-      .on("error", (error) =>
-        console.error("Ошибка при подключении к Redis:", error)
-      )
-      .connect();
+    req.token = payload;
 
     await redis.set(`user:${payload.id}:online`, "true", {
       expiration: { type: "EX", value: 3 },
     });
 
-    await redis.quit();
-
     next();
-  } catch (error) {
+  } catch {
     res.status(403).json({ message: "Доступ запрещен: ошибка токена" });
-    return;
   }
 }
 
@@ -69,39 +57,23 @@ export async function isAdmin(req: Request, res: Response, next: NextFunction) {
       return;
     }
 
-    const findIsAdmin = await prisma.account.findFirst({
-      where: {
-        user_id: payload.id,
-        role: {
-          name: "admin",
-        },
-      },
+    const adminAccount = await prisma.account.findFirst({
+      where: { user_id: payload.id, role: { name: "admin" } },
     });
 
-    if (findIsAdmin) {
-      req.token = payload;
-    } else {
-      new Error();
+    if (!adminAccount) {
+      res.status(403).json({ message: "Доступ запрещен" });
       return;
     }
 
-    const redis = await createClient({
-      url: "redis://@127.0.0.1",
-    })
-      .on("error", (error) =>
-        console.error("Ошибка при подключении к Redis:", error)
-      )
-      .connect();
+    req.token = payload;
 
     await redis.set(`user:${payload.id}:online`, "true", {
       expiration: { type: "EX", value: 3 },
     });
 
-    await redis.quit();
-
     next();
-  } catch (error) {
+  } catch {
     res.status(403).json({ message: "Доступ запрещен" });
-    return;
   }
 }
