@@ -1,4 +1,11 @@
 {
+  "name": "kontact-web",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "packages/*"
+  ],
   "prisma": {
     "seed": "ts-node backend/prisma/seed.ts"
   },

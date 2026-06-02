@@ -11,6 +11,7 @@
     "format": "npx prettier --write ."
   },
   "dependencies": {
+    "@kontact/shared": "*",
     "bcrypt-ts": "^5.0.3",
     "emoji-picker-react": "^4.12.2",
     "jose": "^5.9.6",
