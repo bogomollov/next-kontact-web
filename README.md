@@ -58,6 +58,10 @@ npx prisma migrate deploy
 
 4. Запуск веб-приложения
 
-```
+```bash
 docker compose up
+```
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up --build
 ```

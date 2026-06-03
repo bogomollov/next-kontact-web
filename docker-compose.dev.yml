@@ -1,0 +1,38 @@
+services:
+  nginx:
+    profiles: ["disabled"]
+
+  pgsql:
+    ports:
+      - "${DB_PORT:-5432}:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      target: development
+    container_name: kontact-backend-dev
+    env_file: .env.dev
+    command: sh -c "npx prisma migrate deploy && npm run dev"
+    volumes:
+      - ./backend/server.ts:/backend/server.ts
+      - ./backend/src:/backend/src
+      - ./backend/prisma:/backend/prisma
+      - /backend/node_modules
+      - /backend/generated
+    ports:
+      - "3001:3001"
+
+  frontend:
+    build:
+      target: development
+    container_name: kontact-frontend-dev
+    env_file: .env.dev
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+      - /app/frontend/.next
+    ports:
+      - "3000:3000"
