@@ -2,7 +2,7 @@
 import useSWR from "swr";
 import { apiFetch } from "@/lib/apiFetch";
 import { IChatListItem, IMe } from "@/types";
-import { LeftSidebar } from "@/components/sidebar/LeftSidebar";
+import { LeftSidebar } from "@/features/dashboard/components/LeftSidebar";
 
 export async function getMe(url: string) {
   const res = await apiFetch(url, {

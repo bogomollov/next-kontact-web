@@ -1,9 +1,9 @@
 "use client";
 import { useState, useCallback } from "react";
-import Table from "./ui/Table";
+import Table from "@/components/ui/Table";
 import { apiFetch } from "@/lib/apiFetch";
 import { ApiResponse } from "@/types";
-import Button from "./ui/Button";
+import Button from "@/components/ui/Button";
 
 export default function API() {
   const [response, setResponse] = useState<ApiResponse>({});

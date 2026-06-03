@@ -1,6 +1,6 @@
 "use client";
 import { IChat, IMe, IMessage } from "@/types";
-import ChatAvatar from "../ui/ChatAvatar";
+import ChatAvatar from "@/components/ui/ChatAvatar";
 import { useEffect, useRef } from "react";
 
 interface ChatContentProps {

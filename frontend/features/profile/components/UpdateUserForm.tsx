@@ -1,15 +1,15 @@
 "use client";
-import Input from "../ui/Input";
-import InputLabel from "../ui/InputLabel";
-import Button from "../ui/Button";
-import InputError from "../ui/InputError";
+import Input from "@/components/ui/Input";
+import InputLabel from "@/components/ui/InputLabel";
+import Button from "@/components/ui/Button";
+import InputError from "@/components/ui/InputError";
 import { FormErrors, FormState, IDepartment, IMe, IPosition } from "@/types";
 import imageLoader from "@/lib/imageLoader";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/apiFetch";
 import Image from "next/image";
-import Select from "../ui/Select";
+import Select from "@/components/ui/Select";
 
 interface FormData {
   firstName: string;

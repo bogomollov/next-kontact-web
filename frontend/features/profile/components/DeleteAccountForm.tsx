@@ -1,6 +1,6 @@
 "use client";
 import { FormState, IMe } from "@/types";
-import Button from "../ui/Button";
+import Button from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/apiFetch";
 import { useState } from "react";

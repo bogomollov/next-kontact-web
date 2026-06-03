@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import FAQ from "@/components/FAQ";
-import API from "@/components/API";
+import FAQ from "@/features/home/components/FAQ";
+import API from "@/features/home/components/API";
 import imageLoader from "@/lib/imageLoader";
-import FEATURES from "@/components/FEATURES";
+import FEATURES from "@/features/home/components/FEATURES";
 
 export default function Home() {
   return (
@@ -38,7 +38,7 @@ export default function Home() {
           <div className="w-full px-2 sm:px-0">
             <Image
               loader={imageLoader}
-              src={"/static/preview.webp"}
+              src={"/preview.webp"}
               alt="preview-app"
               priority
               width={1920}

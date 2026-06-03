@@ -1,7 +1,7 @@
 "use client";
-import ChatHeader from "@/components/chat/ChatHeader";
-import ChatContent from "@/components/chat/ChatContent";
-import ChatForm from "@/components/chat/ChatForm";
+import ChatHeader from "@/features/chat/components/ChatHeader";
+import ChatContent from "@/features/chat/components/ChatContent";
+import ChatForm from "@/features/chat/components/ChatForm";
 import { apiFetch } from "@/lib/apiFetch";
 import { notFound } from "next/navigation";
 import { IChat, IMe } from "@/types";

@@ -2,10 +2,10 @@ import Link from "next/link";
 import { IDepartment, IMe, IPosition } from "@/types";
 import { apiFetch } from "@/lib/apiFetch";
 import { cookies } from "next/headers";
-import UpdateUserForm from "@/components/profile/UpdateUserForm";
-import UpdateAccountForm from "@/components/profile/UpdateAccountForm";
-import UpdatePasswordForm from "@/components/profile/UpdatePasswordForm";
-import DeleteAccountForm from "@/components/profile/DeleteAccountForm";
+import UpdateUserForm from "@/features/profile/components/UpdateUserForm";
+import UpdateAccountForm from "@/features/profile/components/UpdateAccountForm";
+import UpdatePasswordForm from "@/features/profile/components/UpdatePasswordForm";
+import DeleteAccountForm from "@/features/profile/components/DeleteAccountForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
