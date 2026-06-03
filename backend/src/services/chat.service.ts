@@ -172,10 +172,28 @@ export async function searchChats(userId: number, query: string) {
   });
 }
 
+export async function getChatMemberIds(chatId: number): Promise<number[]> {
+  const chat = await prisma.chat.findUnique({
+    where: { id: chatId },
+    select: { members: { select: { user_id: true } } },
+  });
+  return chat?.members.map((m) => m.user_id) ?? [];
+}
+
 export async function markMessagesRead(chatId: number, userId: number) {
+  const unread = await prisma.message.findMany({
+    where: { chat_id: chatId, NOT: { sender_id: userId }, isRead: false },
+    select: { sender_id: true },
+  });
+
+  const senderIds = [
+    ...new Set(unread.map((m) => m.sender_id).filter((id): id is number => id !== null)),
+  ];
+
   const result = await prisma.message.updateMany({
     where: { chat_id: chatId, NOT: { sender_id: userId }, isRead: false },
     data: { isRead: true },
   });
-  return { count: result.count };
+
+  return { count: result.count, senderIds };
 }

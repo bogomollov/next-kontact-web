@@ -1,6 +1,8 @@
 import express, { Request, Response, NextFunction } from "express";
 import { isAuth, isAdmin } from "../middleware/auth";
 import { getAllMessages, createMessage } from "../services/message.service";
+import { getChatMemberIds } from "../services/chat.service";
+import { broadcast } from "../lib/ws";
 
 const router = express.Router();
 
@@ -16,8 +18,13 @@ router.get("/", isAdmin, async (_req: Request, res: Response, next: NextFunction
 router.post("/", isAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { chat_id, content } = req.body;
-    const data = await createMessage(Number(chat_id), req.token!.id, content);
-    res.status(201).json(data);
+    const chatId = Number(chat_id);
+    const message = await createMessage(chatId, req.token!.id, content);
+
+    const memberIds = await getChatMemberIds(chatId);
+    broadcast(memberIds, "new_message", { chatId, message });
+
+    res.status(201).json(message);
   } catch (error) {
     next(error);
   }

@@ -1,8 +1,11 @@
 "use client";
+import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import useSWR from "swr";
 import { apiFetch } from "@/lib/apiFetch";
-import { IChatListItem, IMe } from "@/types";
+import { IChatListItem, IMe, IMessage, TChatListItem } from "@/types";
 import { LeftSidebar } from "@/features/dashboard/components/LeftSidebar";
+import { WebSocketProvider, useWs } from "@/lib/WebSocketContext";
 
 export async function getMe(url: string) {
   const res = await apiFetch(url, {
@@ -20,25 +23,64 @@ async function getChats(url: string) {
   return res.json();
 }
 
-export default function DashboardLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
-  const { data: me } = useSWR<IMe>(`/me`, (url) => getMe(url), {
+function DashboardShell({ children }: { children: React.ReactNode }) {
+  const { data: me } = useSWR<IMe>(`/me`, getMe, {
     revalidateOnReconnect: true,
     revalidateOnFocus: true,
   });
 
-  const { data: chatList } = useSWR<IChatListItem[]>(
-    `/chats`,
-    (url) => getChats(url),
-    {
-      revalidateOnReconnect: true,
-      revalidateOnFocus: true,
-      refreshInterval: 800,
-    },
-  );
+  const { data: initialChatList } = useSWR<IChatListItem[]>(`/chats`, getChats);
 
-  if (!me || !chatList) return null;
+  const [chatList, setChatList] = useState<TChatListItem[]>([]);
+  const { subscribe } = useWs();
+  const pathname = usePathname();
+  const pathnameRef = useRef(pathname);
+  const meIdRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
+
+  useEffect(() => {
+    meIdRef.current = me?.id;
+  }, [me?.id]);
+
+  // Seed local state from initial SWR fetch
+  useEffect(() => {
+    if (initialChatList) setChatList(initialChatList);
+  }, [initialChatList]);
+
+  // Reset unread badge when the user navigates into a chat
+  useEffect(() => {
+    const match = pathname.match(/^\/dashboard\/(\d+)$/);
+    if (!match) return;
+    const activeChatId = Number(match[1]);
+    setChatList((prev) =>
+      prev.map((c) => (c.id === activeChatId ? { ...c, unreadCount: 0 } : c))
+    );
+  }, [pathname]);
+
+  // Increment unread count in sidebar when a new message arrives
+  useEffect(() => {
+    return subscribe("new_message", (data) => {
+      const { message, chatId } = data as { message: IMessage; chatId: number };
+
+      // Own messages don't produce unread badges
+      if (message.sender_id === meIdRef.current) return;
+
+      // Don't badge the chat that's currently open
+      const activeChatId = pathnameRef.current.match(/^\/dashboard\/(\d+)$/)?.[1];
+      if (Number(activeChatId) === chatId) return;
+
+      setChatList((prev) =>
+        prev.map((c) =>
+          c.id === chatId ? { ...c, unreadCount: c.unreadCount + 1 } : c
+        )
+      );
+    });
+  }, [subscribe]);
+
+  if (!me || !initialChatList) return null;
 
   return (
     <div className="flex h-screen">
@@ -47,5 +89,15 @@ export default function DashboardLayout({
       </div>
       {children}
     </div>
+  );
+}
+
+export default function DashboardLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <WebSocketProvider>
+      <DashboardShell>{children}</DashboardShell>
+    </WebSocketProvider>
   );
 }

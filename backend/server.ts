@@ -2,10 +2,12 @@ import dotenv from "dotenv";
 import path from "path";
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
+import http from "http";
 import express, { Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { connectRedis } from "./src/lib/redis";
+import { createWsServer } from "./src/lib/ws";
 import { errorHandler } from "./src/middleware/error";
 import generalRoutes from "./src/routes/general.routes";
 import userRoutes from "./src/routes/user.routes";
@@ -54,9 +56,12 @@ app.use("/api/auth", authRoutes);
 
 app.use(errorHandler);
 
+const server = http.createServer(app);
+createWsServer(server);
+
 connectRedis()
   .then(() => {
-    app.listen(3001, () => {
+    server.listen(3001, () => {
       console.log(`Сервер запущен на http://localhost:3001`);
     });
   })
