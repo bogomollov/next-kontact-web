@@ -38,7 +38,7 @@ export default function Home() {
           <div className="w-full px-2 sm:px-0">
             <Image
               loader={imageLoader}
-              src={"/preview.webp"}
+              src="/preview.webp"
               alt="preview-app"
               priority
               width={1920}
