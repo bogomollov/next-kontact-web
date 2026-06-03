@@ -1,10 +1,15 @@
-# Stage 1: Install workspace dependencies (shared between dev and prod)
+# Stage 1: Install frontend dependencies using the frontend's own lockfile
 FROM node:lts AS deps
-WORKDIR /app
-COPY package*.json ./
-COPY packages/shared ./packages/shared
-COPY frontend/package*.json ./frontend/
-RUN npm ci --workspace=frontend --include-workspace-root
+
+# packages/shared lives at ../packages/shared relative to the frontend dir.
+# All code imports it via the @/types tsconfig path alias — no npm resolution needed.
+COPY packages/shared /app/packages/shared
+
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+# @kontact/shared is not in the frontend lockfile (workspace alias only).
+# Remove it so that package.json and the lockfile agree, then do a clean install.
+RUN npm pkg delete dependencies.@kontact/shared && npm ci
 
 # Stage 2: Development — source code is bind-mounted at runtime
 FROM deps AS development
@@ -15,8 +20,8 @@ CMD ["npx", "next", "dev", "--turbopack", "-p", "3000"]
 
 # Stage 3: Build production bundle
 FROM deps AS builder
-WORKDIR /app
-COPY frontend ./frontend
+WORKDIR /app/frontend
+COPY frontend ./
 ARG NEXT_PUBLIC_URL
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_WS_URL
@@ -24,7 +29,7 @@ ENV NEXT_PUBLIC_URL=$NEXT_PUBLIC_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run --workspace=frontend build
+RUN npm run build
 
 # Stage 4: Production runtime
 FROM node:lts AS production

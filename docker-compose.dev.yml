@@ -32,6 +32,7 @@ services:
     env_file: .env.dev
     volumes:
       - ./frontend:/app/frontend
+      - ./packages/shared:/app/packages/shared
       - /app/frontend/node_modules
       - /app/frontend/.next
     ports:
