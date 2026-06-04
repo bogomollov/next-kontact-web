@@ -6,11 +6,11 @@ import {
   useEffect,
   useRef,
 } from "react";
+import { env } from "./env";
 
 type WsHandler = (payload: unknown) => void;
 
 interface WsContextValue {
-  /** Subscribe to a WS event type. Returns an unsubscribe function. */
   subscribe: (type: string, handler: WsHandler) => () => void;
 }
 
@@ -18,7 +18,7 @@ const WsContext = createContext<WsContextValue | null>(null);
 
 const WS_URL =
   process.env.NODE_ENV === "production"
-    ? process.env.NEXT_PUBLIC_WS_URL!
+    ? (env.NEXT_PUBLIC_WS_URL ?? "")
     : "ws://localhost:3001/ws";
 
 export function WebSocketProvider({ children }: { children: React.ReactNode }) {
@@ -42,9 +42,7 @@ export function WebSocketProvider({ children }: { children: React.ReactNode }) {
         try {
           const { type, payload } = JSON.parse(event.data as string);
           handlers.current.get(type)?.forEach((h) => h(payload));
-        } catch {
-          // ignore malformed frames
-        }
+        } catch {}
       };
 
       ws.onclose = (event) => {
