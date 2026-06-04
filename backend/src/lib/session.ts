@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { JWTPayload, jwtVerify, SignJWT } from "jose";
+import { env } from "./env";
 
-const key = process.env.ACCESS_SECRET;
+const key = env.ACCESS_SECRET;
 const encodedAccessKey = new TextEncoder().encode(key);
 const AccessExpiresAt = new Date(Date.now() + 1 * 24 * 60 * 60 * 3000);
 

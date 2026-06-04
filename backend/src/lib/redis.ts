@@ -1,7 +1,8 @@
 import { createClient } from "redis";
+import { env } from "./env";
 
 export const redis = createClient({
-  url: process.env.REDIS_URL || "redis://@127.0.0.1",
+  url: env.REDIS_URL,
 }).on("error", (error) => console.error("Redis error:", error));
 
 export async function connectRedis() {

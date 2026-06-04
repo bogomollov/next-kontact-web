@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import path from "path";
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
+import "./src/lib/env";
 import http from "http";
 import express, { Request, Response } from "express";
 import cors from "cors";
