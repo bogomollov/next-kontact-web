@@ -5,6 +5,7 @@ const schema = z.object({
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url().default("redis://127.0.0.1:6379"),
   ACCESS_SECRET: z.string().min(16),
+  NEXT_PUBLIC_URL: z.string().url().default("http://localhost:3000"),
 });
 
 const result = schema.safeParse(process.env);

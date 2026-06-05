@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import path from "path";
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
-import "./src/lib/env";
+import { env } from "./src/lib/env";
 import http from "http";
 import express, { Request, Response } from "express";
 import cors from "cors";
@@ -22,7 +22,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: true,
+    origin: env.NEXT_PUBLIC_URL,
     allowedHeaders: "Content-Type, Authorization",
     credentials: true,
     optionsSuccessStatus: 200,
