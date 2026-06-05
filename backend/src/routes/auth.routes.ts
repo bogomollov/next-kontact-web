@@ -1,10 +1,11 @@
 import express, { Request, Response, NextFunction } from "express";
 import { register, login } from "../services/auth.service";
 import { createSession } from "../lib/session";
+import { rateLimit } from "../middleware/rateLimit";
 
 const router = express.Router();
 
-router.post("/register", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/register", rateLimit("register", 5, 60), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = await register(req.body);
     await createSession(res, payload);
@@ -14,7 +15,7 @@ router.post("/register", async (req: Request, res: Response, next: NextFunction)
   }
 });
 
-router.post("/login", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/login", rateLimit("login", 10, 60), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { sessionPayload, user } = await login(req.body);
     await createSession(res, sessionPayload);
