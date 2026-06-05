@@ -1,4 +1,4 @@
-import { compare, genSaltSync, hashSync } from "bcrypt-ts";
+import { compare, hash } from "bcrypt-ts";
 import { prisma } from "../lib/prisma";
 import { AppError } from "../middleware/error";
 
@@ -40,7 +40,7 @@ export async function updateAccount(
   const updateData: Record<string, unknown> = {};
   if (username) updateData.username = username;
   if (password && newPassword && repeatPassword)
-    updateData.password = hashSync(newPassword, genSaltSync(12));
+    updateData.password = await hash(newPassword, 12);
   if (email) updateData.email = email;
   if (phone) updateData.phone = phone;
   if (role_id) updateData.role_id = role_id;

@@ -7,7 +7,7 @@ const router = express.Router();
 router.post("/register", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = await register(req.body);
-    await createSession(req, res, payload);
+    await createSession(res, payload);
     res.status(201).json({ message: "Успешная регистрация" });
   } catch (error) {
     next(error);
@@ -17,7 +17,7 @@ router.post("/register", async (req: Request, res: Response, next: NextFunction)
 router.post("/login", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { sessionPayload, user } = await login(req.body);
-    await createSession(req, res, sessionPayload);
+    await createSession(res, sessionPayload);
     res.status(201).json({ message: "Успешная авторизация", user });
   } catch (error) {
     next(error);

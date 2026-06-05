@@ -1,27 +1,26 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { JWTPayload, jwtVerify, SignJWT } from "jose";
 import { env } from "./env";
 
-const key = env.ACCESS_SECRET;
-const encodedAccessKey = new TextEncoder().encode(key);
-const AccessExpiresAt = new Date(Date.now() + 1 * 24 * 60 * 60 * 3000);
+const encodedAccessKey = new TextEncoder().encode(env.ACCESS_SECRET);
+const TOKEN_TTL_MS = 3 * 24 * 60 * 60 * 1000;
 
 export interface SessionPayload extends JWTPayload {
   id: number;
+  role: "user" | "admin";
 }
 
-export async function encrypt(payload: SessionPayload) {
-  return await new SignJWT(payload)
+export async function encrypt(payload: SessionPayload): Promise<string> {
+  const expiresAt = new Date(Date.now() + TOKEN_TTL_MS);
+  return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setIssuedAt()
     .setSubject(`${payload.id}`)
-    .setExpirationTime(AccessExpiresAt)
+    .setExpirationTime(expiresAt)
     .sign(encodedAccessKey);
 }
 
-export async function decrypt(
-  session: string | undefined = ""
-): Promise<SessionPayload | null> {
+export async function decrypt(session = ""): Promise<SessionPayload | null> {
   try {
     const { payload } = await jwtVerify(session, encodedAccessKey, {
       algorithms: ["HS256"],
@@ -35,14 +34,14 @@ export async function decrypt(
 }
 
 export async function createSession(
-  req: Request,
   res: Response,
   payload: SessionPayload
-) {
-  const session = await encrypt({ id: payload.id });
-  res.cookie("session", session, {
+): Promise<void> {
+  const expiresAt = new Date(Date.now() + TOKEN_TTL_MS);
+  const token = await encrypt(payload);
+  res.cookie("session", token, {
     httpOnly: true,
-    expires: AccessExpiresAt,
+    expires: expiresAt,
     sameSite: "strict",
     path: "/",
   });
