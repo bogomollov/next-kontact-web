@@ -3,7 +3,7 @@ import { prisma } from "../lib/prisma";
 export async function getDashboardData() {
   const [users, accounts, positions, departments] = await Promise.all([
     prisma.user.findMany(),
-    prisma.account.findMany(),
+    prisma.account.findMany({ omit: { password: true } }),
     prisma.position.findMany(),
     prisma.department.findMany(),
   ]);

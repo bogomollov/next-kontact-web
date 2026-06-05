@@ -3,7 +3,7 @@ import { prisma } from "../lib/prisma";
 import { AppError } from "../middleware/error";
 
 export async function getAllAccounts() {
-  return prisma.account.findMany();
+  return prisma.account.findMany({ omit: { password: true } });
 }
 
 export async function updateAccount(
@@ -46,7 +46,7 @@ export async function updateAccount(
   if (email) updateData.email = email;
   if (phone) updateData.phone = phone;
 
-  return prisma.account.update({ where: { id: accountId }, data: updateData });
+  return prisma.account.update({ where: { id: accountId }, data: updateData, omit: { password: true } });
 }
 
 export async function deleteAccount(
