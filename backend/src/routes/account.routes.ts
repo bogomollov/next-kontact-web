@@ -12,16 +12,8 @@ router.patch("/:id", isAuth, async (req: Request, res: Response, next: NextFunct
       return;
     }
 
-    const {
-      username,
-      password,
-      newPassword,
-      repeatPassword,
-      email,
-      phone,
-      role_id,
-      user_id,
-    } = req.body;
+    const { username, password, newPassword, repeatPassword, email, phone, role_id, user_id } =
+      req.body;
 
     if (
       !username &&
@@ -37,7 +29,10 @@ router.patch("/:id", isAuth, async (req: Request, res: Response, next: NextFunct
       return;
     }
 
-    const account = await updateAccount(accountId, req.body);
+    const { id: callerId, role: callerRole } = req.token!;
+    const account = await updateAccount(accountId, callerId, callerRole, {
+      username, password, newPassword, repeatPassword, email, phone, role_id, user_id,
+    });
     res.json({ message: "Аккаунт обновлен", account });
   } catch (error) {
     next(error);
@@ -51,9 +46,15 @@ router.delete("/:id", isAuth, async (req: Request, res: Response, next: NextFunc
       res.status(400).json({ message: "Не указан идентификатор аккаунта" });
       return;
     }
-    await deleteAccount(accountId);
-    res.clearCookie("session");
-    req.token = undefined;
+
+    const { id: callerId, role: callerRole } = req.token!;
+    const deleted = await deleteAccount(accountId, callerId, callerRole);
+
+    if (deleted.user_id === callerId) {
+      res.clearCookie("session");
+      req.token = undefined;
+    }
+
     res.json({ message: "Аккаунт удален" });
   } catch (error) {
     next(error);
