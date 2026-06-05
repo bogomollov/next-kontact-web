@@ -12,26 +12,16 @@ router.patch("/:id", isAuth, async (req: Request, res: Response, next: NextFunct
       return;
     }
 
-    const { username, password, newPassword, repeatPassword, email, phone, role_id, user_id } =
-      req.body;
+    const { username, password, newPassword, repeatPassword, email, phone } = req.body;
 
-    if (
-      !username &&
-      !password &&
-      !newPassword &&
-      !repeatPassword &&
-      !email &&
-      !phone &&
-      !role_id &&
-      !user_id
-    ) {
+    if (!username && !password && !newPassword && !repeatPassword && !email && !phone) {
       res.status(409).json({ message: "Укажите хотя бы одно поле для обновления" });
       return;
     }
 
     const { id: callerId, role: callerRole } = req.token!;
     const account = await updateAccount(accountId, callerId, callerRole, {
-      username, password, newPassword, repeatPassword, email, phone, role_id, user_id,
+      username, password, newPassword, repeatPassword, email, phone,
     });
     res.json({ message: "Аккаунт обновлен", account });
   } catch (error) {

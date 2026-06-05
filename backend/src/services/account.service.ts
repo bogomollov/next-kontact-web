@@ -17,11 +17,9 @@ export async function updateAccount(
     repeatPassword?: string;
     email?: string;
     phone?: string;
-    role_id?: number;
-    user_id?: number;
   }
 ) {
-  const { username, password, newPassword, repeatPassword, email, phone, role_id, user_id } = body;
+  const { username, password, newPassword, repeatPassword, email, phone } = body;
 
   const account = await prisma.account.findUnique({
     where: { id: accountId },
@@ -32,9 +30,6 @@ export async function updateAccount(
 
   if (callerRole !== "admin" && account.user_id !== callerId)
     throw new AppError(403, "Доступ запрещен");
-
-  if ((role_id || user_id) && callerRole !== "admin")
-    throw new AppError(403, "Недостаточно прав для изменения роли или пользователя");
 
   if (password && account.password) {
     if (!(await compare(password, account.password)))
@@ -50,8 +45,6 @@ export async function updateAccount(
     updateData.password = await hash(newPassword, 12);
   if (email) updateData.email = email;
   if (phone) updateData.phone = phone;
-  if (role_id) updateData.role_id = role_id;
-  if (user_id) updateData.user_id = user_id;
 
   return prisma.account.update({ where: { id: accountId }, data: updateData });
 }
