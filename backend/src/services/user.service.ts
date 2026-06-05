@@ -87,24 +87,31 @@ export async function searchUsers(query: string, currentUserId: number) {
     take: 10,
   });
 
-  return Promise.all(
-    users.map(async (user) => {
-      const chat = await prisma.chat.findFirst({
-        where: {
-          AND: [
-            { members: { some: { user_id: currentUserId } } },
-            { members: { some: { user_id: user.id } } },
-          ],
-          type: "private",
-        },
-        select: { id: true },
-      });
-      return {
-        id: user.id,
-        name: `${user.firstName} ${user.lastName}`,
-        image: `/static/users/${user.id}.png`,
-        chat_id: chat?.id ?? null,
-      };
-    })
+  const sharedChats = await prisma.chat.findMany({
+    where: {
+      type: "private",
+      members: { some: { user_id: currentUserId } },
+      AND: { members: { some: { user_id: { in: users.map((u) => u.id) } } } },
+    },
+    select: {
+      id: true,
+      members: {
+        where: { user_id: { not: currentUserId } },
+        select: { user_id: true },
+      },
+    },
+  });
+
+  const chatByUserId = new Map(
+    sharedChats
+      .filter((c) => c.members.length > 0)
+      .map((c) => [c.members[0].user_id, c.id])
   );
+
+  return users.map((user) => ({
+    id: user.id,
+    name: `${user.firstName} ${user.lastName}`,
+    image: `/static/users/${user.id}.png`,
+    chat_id: chatByUserId.get(user.id) ?? null,
+  }));
 }
