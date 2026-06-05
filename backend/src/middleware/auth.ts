@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { decrypt, SessionPayload } from "../lib/session";
 import { redis } from "../lib/redis";
+import { prisma } from "../lib/prisma";
 
 declare global {
   namespace Express {
@@ -25,6 +26,16 @@ async function resolveToken(
   const payload = await decrypt(raw);
   if (!payload) {
     res.status(403).json({ message: "Недействительный токен" });
+    return null;
+  }
+
+  const account = await prisma.account.findUnique({
+    where: { user_id: payload.id },
+    select: { deletedAt: true },
+  });
+
+  if (!account || account.deletedAt !== null) {
+    res.status(403).json({ message: "Аккаунт удален" });
     return null;
   }
 
