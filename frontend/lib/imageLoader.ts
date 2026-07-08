@@ -8,5 +8,6 @@ const IMAGE_BASE_URL =
     : "http://localhost:3001";
 
 export default function imageLoader({ src }: { src: string }) {
+  if (!src.startsWith("/static/")) return src;
   return `${IMAGE_BASE_URL}${src}`;
 }
