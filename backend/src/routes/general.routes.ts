@@ -4,6 +4,7 @@ import { AppError } from "../middleware/error";
 import { getMe, getAllUsers } from "../services/user.service";
 import { getAllAccounts } from "../services/account.service";
 import { getDepartments, getPositions } from "../services/admin.service";
+import { parsePagination } from "../lib/pagination";
 
 const router = express.Router();
 
@@ -17,36 +18,36 @@ router.get("/me", isAuth, async (req: Request, res: Response, next: NextFunction
   }
 });
 
-router.get("/accounts", isAuth, async (_req: Request, res: Response, next: NextFunction) => {
+router.get("/accounts", isAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await getAllAccounts();
+    const data = await getAllAccounts(parsePagination(req.query));
     res.json(data);
   } catch (error) {
     next(error);
   }
 });
 
-router.get("/users", isAuth, async (_req: Request, res: Response, next: NextFunction) => {
+router.get("/users", isAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await getAllUsers();
+    const data = await getAllUsers(parsePagination(req.query));
     res.json(data);
   } catch (error) {
     next(error);
   }
 });
 
-router.get("/departments", isAuth, async (_req: Request, res: Response, next: NextFunction) => {
+router.get("/departments", isAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await getDepartments();
+    const data = await getDepartments(parsePagination(req.query));
     res.json(data);
   } catch (error) {
     next(error);
   }
 });
 
-router.get("/positions", isAuth, async (_req: Request, res: Response, next: NextFunction) => {
+router.get("/positions", isAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await getPositions();
+    const data = await getPositions(parsePagination(req.query));
     res.json(data);
   } catch (error) {
     next(error);

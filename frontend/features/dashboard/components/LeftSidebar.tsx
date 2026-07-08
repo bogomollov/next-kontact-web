@@ -1,12 +1,12 @@
 "use client";
 import React, { useCallback, useState } from "react";
-import InputSearch from "../ui/InputSearch";
+import InputSearch from "@/components/ui/InputSearch";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { IChatSearchListItem, IMe, TChatListItem } from "@/types";
 import { apiFetch } from "@/lib/apiFetch";
-import { UserSearchResult } from "../chat/ChatSearchResult";
-import ChatAvatar from "../ui/ChatAvatar";
+import { UserSearchResult } from "@/features/chat/components/ChatSearchResult";
+import ChatAvatar from "@/components/ui/ChatAvatar";
 
 export function LeftSidebar({
   authUser,

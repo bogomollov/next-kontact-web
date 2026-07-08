@@ -2,7 +2,7 @@
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import InputLabel from "@/components/ui/InputLabel";
-import InputError from "../ui/InputError";
+import InputError from "@/components/ui/InputError";
 import { FormErrors, FormState, IMe } from "@/types";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

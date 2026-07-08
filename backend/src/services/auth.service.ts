@@ -1,9 +1,10 @@
-import { compare, genSaltSync, hashSync } from "bcrypt-ts";
+import { compare, hash } from "bcrypt-ts";
 import { prisma } from "../lib/prisma";
 import { LoginFormSchema, RegisterFormSchema } from "../lib/validation";
 import { AppError } from "../middleware/error";
+import { SessionPayload } from "../lib/session";
 
-export async function register(body: unknown) {
+export async function register(body: unknown): Promise<SessionPayload> {
   const { firstName, lastName, middleName, email, username, password } =
     RegisterFormSchema.parse(body);
 
@@ -21,14 +22,14 @@ export async function register(body: unknown) {
       "username"
     );
 
-  const passwordHash = hashSync(password, genSaltSync(12));
+  const passwordHash = await hash(password, 12);
 
-  const { newUser, account } = await prisma.$transaction(async (tx) => {
+  const newUser = await prisma.$transaction(async (tx) => {
     const createdUser = await tx.user.create({
       data: { firstName, lastName, middleName, department_id: 1, position_id: 1 },
     });
 
-    const createdAccount = await tx.account.create({
+    await tx.account.create({
       data: {
         user_id: createdUser.id,
         username,
@@ -38,25 +39,34 @@ export async function register(body: unknown) {
       },
     });
 
-    await tx.chatMember.createMany({
-      data: Array.from({ length: 12 }, (_, i) => ({
-        chat_id: i + 1,
-        user_id: createdUser.id,
-      })),
+    const groupChats = await tx.chat.findMany({
+      where: { type: "group" },
+      select: { id: true },
     });
 
-    return { newUser: createdUser, account: createdAccount };
+    if (groupChats.length > 0) {
+      await tx.chatMember.createMany({
+        data: groupChats.map((chat) => ({
+          chat_id: chat.id,
+          user_id: createdUser.id,
+        })),
+      });
+    }
+
+    return createdUser;
   });
 
-  return { id: newUser.id, username: account.username, email: account.email };
+  return { id: newUser.id, role: "user" };
 }
 
-export async function login(body: unknown) {
+export async function login(
+  body: unknown
+): Promise<{ sessionPayload: SessionPayload; user: { id: number; username: string; role: string } }> {
   const { email, password } = LoginFormSchema.parse(body);
 
   const account = await prisma.account.findUnique({
     where: { email, deletedAt: null },
-    include: { role: true, user: true },
+    include: { role: true },
   });
 
   if (!account?.password)
@@ -65,17 +75,10 @@ export async function login(body: unknown) {
   if (!(await compare(password, account.password)))
     throw new AppError(409, "Неправильный логин или пароль");
 
+  const role = account.role.name as "user" | "admin";
+
   return {
-    sessionPayload: {
-      id: account.user_id,
-      username: account.username,
-      role: account.role.name,
-      email: account.email,
-    },
-    user: {
-      id: account.user_id,
-      username: account.username,
-      role: account.role.name,
-    },
+    sessionPayload: { id: account.user_id, role },
+    user: { id: account.user_id, username: account.username, role },
   };
 }

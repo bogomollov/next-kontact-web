@@ -4,7 +4,7 @@ export const LoginFormSchema = z.object({
   email: z.string().email({ message: "Неправильный формат почты" }).trim(),
   password: z
     .string()
-    .min(3, { message: "Минимальная длина пароля 3 символа" })
+    .min(8, { message: "Минимальная длина пароля 8 символов" })
     .trim(),
 });
 

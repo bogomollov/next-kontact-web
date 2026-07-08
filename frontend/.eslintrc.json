@@ -9,8 +9,7 @@
       {
         "devDependencies": true,
         "optionalDependencies": false,
-        "peerDependencies": false,
-        "patterns": ["@/types/*"]
+        "peerDependencies": false
       }
     ],
     "@next/next/no-assign-module-variable": "error",

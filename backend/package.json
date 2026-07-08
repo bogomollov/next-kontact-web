@@ -1,16 +1,17 @@
 {
   "name": "kontact-web-backend",
   "version": "1.0.0",
+  "type": "commonjs",
   "main": "server.ts",
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "npx ts-node server.ts",
+    "dev": "tsx server.ts",
     "build": "npx tsc",
     "start": "npx prisma migrate deploy && node build/prisma/seed.js && node build/server.js"
   },
   "prisma": {
-    "seed": "npx ts-node --transpile-only prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "6.6.0",
@@ -18,7 +19,6 @@
     "bcrypt-ts": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "dotenv-cli": "^8.0.0",
     "express": "^5.1.0",
     "jose": "^6.0.10",
     "multer": "^2.1.1",
@@ -35,7 +35,8 @@
     "@types/node": "^22.14.1",
     "@types/ws": "^8.18.1",
     "dotenv": "^16.5.0",
-    "ts-node": "^10.9.2",
+    "nodemon": "^3.1.14",
+    "tsx": "^4.19.2",
     "typescript": "^5.8.3"
   }
 }

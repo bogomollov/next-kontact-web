@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma";
 import { AppError } from "../middleware/error";
+import { paginate, PaginationParams } from "../lib/pagination";
 
 export async function getMe(userId: number) {
   const account = await prisma.account.findUnique({
@@ -26,11 +27,16 @@ export async function getMe(userId: number) {
   if (!account)
     throw new AppError(401, "Ошибка при получении данных пользователя");
 
-  return { ...account, image: `/static/users/${account.id}.png` };
+  return { ...account, image: `/static/users/${userId}.png` };
 }
 
-export async function getAllUsers() {
-  return prisma.user.findMany();
+export async function getAllUsers(pagination: PaginationParams) {
+  const [data, total] = await prisma.$transaction([
+    prisma.user.findMany({ skip: pagination.skip, take: pagination.take }),
+    prisma.user.count(),
+  ]);
+
+  return paginate(data, total, pagination);
 }
 
 export async function updateUser(
@@ -87,24 +93,31 @@ export async function searchUsers(query: string, currentUserId: number) {
     take: 10,
   });
 
-  return Promise.all(
-    users.map(async (user) => {
-      const chat = await prisma.chat.findFirst({
-        where: {
-          AND: [
-            { members: { some: { user_id: currentUserId } } },
-            { members: { some: { user_id: user.id } } },
-          ],
-          type: "private",
-        },
-        select: { id: true },
-      });
-      return {
-        id: user.id,
-        name: `${user.firstName} ${user.lastName}`,
-        image: `/static/users/${user.id}.png`,
-        chat_id: chat?.id ?? null,
-      };
-    })
+  const sharedChats = await prisma.chat.findMany({
+    where: {
+      type: "private",
+      members: { some: { user_id: currentUserId } },
+      AND: { members: { some: { user_id: { in: users.map((u) => u.id) } } } },
+    },
+    select: {
+      id: true,
+      members: {
+        where: { user_id: { not: currentUserId } },
+        select: { user_id: true },
+      },
+    },
+  });
+
+  const chatByUserId = new Map(
+    sharedChats
+      .filter((c) => c.members.length > 0)
+      .map((c) => [c.members[0].user_id, c.id])
   );
+
+  return users.map((user) => ({
+    id: user.id,
+    name: `${user.firstName} ${user.lastName}`,
+    image: `/static/users/${user.id}.png`,
+    chat_id: chatByUserId.get(user.id) ?? null,
+  }));
 }

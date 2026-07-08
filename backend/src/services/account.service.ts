@@ -1,13 +1,25 @@
-import { compare, genSaltSync, hashSync } from "bcrypt-ts";
+import { compare, hash } from "bcrypt-ts";
 import { prisma } from "../lib/prisma";
 import { AppError } from "../middleware/error";
+import { paginate, PaginationParams } from "../lib/pagination";
 
-export async function getAllAccounts() {
-  return prisma.account.findMany();
+export async function getAllAccounts(pagination: PaginationParams) {
+  const [data, total] = await prisma.$transaction([
+    prisma.account.findMany({
+      omit: { password: true },
+      skip: pagination.skip,
+      take: pagination.take,
+    }),
+    prisma.account.count(),
+  ]);
+
+  return paginate(data, total, pagination);
 }
 
 export async function updateAccount(
   accountId: number,
+  callerId: number,
+  callerRole: "user" | "admin",
   body: {
     username?: string;
     password?: string;
@@ -15,19 +27,19 @@ export async function updateAccount(
     repeatPassword?: string;
     email?: string;
     phone?: string;
-    role_id?: number;
-    user_id?: number;
   }
 ) {
-  const { username, password, newPassword, repeatPassword, email, phone, role_id, user_id } =
-    body;
+  const { username, password, newPassword, repeatPassword, email, phone } = body;
 
   const account = await prisma.account.findUnique({
     where: { id: accountId },
-    select: { password: true },
+    select: { password: true, user_id: true },
   });
 
   if (!account) throw new AppError(404, "Аккаунт не найден");
+
+  if (callerRole !== "admin" && account.user_id !== callerId)
+    throw new AppError(403, "Доступ запрещен");
 
   if (password && account.password) {
     if (!(await compare(password, account.password)))
@@ -40,20 +52,30 @@ export async function updateAccount(
   const updateData: Record<string, unknown> = {};
   if (username) updateData.username = username;
   if (password && newPassword && repeatPassword)
-    updateData.password = hashSync(newPassword, genSaltSync(12));
+    updateData.password = await hash(newPassword, 12);
   if (email) updateData.email = email;
   if (phone) updateData.phone = phone;
-  if (role_id) updateData.role_id = role_id;
-  if (user_id) updateData.user_id = user_id;
 
-  return prisma.account.update({ where: { id: accountId }, data: updateData });
+  return prisma.account.update({ where: { id: accountId }, data: updateData, omit: { password: true } });
 }
 
-export async function deleteAccount(accountId: number) {
-  const account = await prisma.account.update({
+export async function deleteAccount(
+  accountId: number,
+  callerId: number,
+  callerRole: "user" | "admin"
+) {
+  const account = await prisma.account.findUnique({
+    where: { id: accountId },
+    select: { user_id: true },
+  });
+
+  if (!account) throw new AppError(404, "Аккаунт не найден");
+
+  if (callerRole !== "admin" && account.user_id !== callerId)
+    throw new AppError(403, "Доступ запрещен");
+
+  return prisma.account.update({
     where: { id: accountId },
     data: { deletedAt: new Date() },
   });
-  if (!account) throw new AppError(404, "Аккаунт не найден");
-  return account;
 }

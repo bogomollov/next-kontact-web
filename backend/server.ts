@@ -2,10 +2,13 @@ import dotenv from "dotenv";
 import path from "path";
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
-import express, { Request, Response } from "express";
+import { env } from "./src/lib/env";
+import http from "http";
+import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { connectRedis } from "./src/lib/redis";
+import { createWsServer } from "./src/lib/ws";
 import { errorHandler } from "./src/middleware/error";
 import generalRoutes from "./src/routes/general.routes";
 import userRoutes from "./src/routes/user.routes";
@@ -19,7 +22,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: true,
+    origin: env.NEXT_PUBLIC_URL,
     allowedHeaders: "Content-Type, Authorization",
     credentials: true,
     optionsSuccessStatus: 200,
@@ -54,13 +57,16 @@ app.use("/api/auth", authRoutes);
 
 app.use(errorHandler);
 
+const server = http.createServer(app);
+createWsServer(server);
+
 connectRedis()
   .then(() => {
-    app.listen(3001, () => {
-      console.log(`Сервер запущен на http://localhost:3001`);
+    server.listen(3001, () => {
+      console.log(`Server starting on http://localhost:3001`);
     });
   })
   .catch((error) => {
-    console.error("Не удалось подключиться к Redis:", error);
+    console.error("Failed to connect to Redis:", error);
     process.exit(1);
   });

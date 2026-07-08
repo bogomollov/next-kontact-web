@@ -1,5 +1,5 @@
 import { IChat } from "@/types";
-import ChatAvatar from "../ui/ChatAvatar";
+import ChatAvatar from "@/components/ui/ChatAvatar";
 
 function declensionWord(count: number): string {
   const rules = new Intl.PluralRules("ru-RU");

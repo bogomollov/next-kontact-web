@@ -4,6 +4,7 @@ import path from "path";
 import sharp from "sharp";
 import multer from "multer";
 import { isAuth } from "../middleware/auth";
+import { AppError } from "../middleware/error";
 import { updateUser, searchUsers } from "../services/user.service";
 
 const router = express.Router();
@@ -15,9 +16,18 @@ const storage = multer.diskStorage({
     cb(null, `${req.token?.id}_tmp.png`),
 });
 
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new AppError(415, "Недопустимый тип файла. Разрешены: JPEG, PNG, WebP"));
+    }
+  },
 }).single("image");
 
 router.patch("/:id", isAuth, upload, async (req: Request, res: Response, next: NextFunction) => {

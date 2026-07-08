@@ -3,7 +3,7 @@ import React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { IChatSearchListItem } from "@/types";
 import { apiFetch } from "@/lib/apiFetch";
-import ChatAvatar from "../ui/ChatAvatar";
+import ChatAvatar from "@/components/ui/ChatAvatar";
 
 interface UserSearchResultProps {
   user: IChatSearchListItem;

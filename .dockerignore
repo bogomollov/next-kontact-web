@@ -1,0 +1,23 @@
+.git
+.gitignore
+*.md
+
+# Env files — injected at runtime via env_file
+.env
+.env.*
+
+# Root node_modules (not used in builds)
+node_modules/
+
+# Frontend
+frontend/.next/
+frontend/node_modules/
+frontend/.env*
+
+# Backend
+backend/build/
+backend/node_modules/
+backend/.env*
+
+# Misc
+**/.DS_Store

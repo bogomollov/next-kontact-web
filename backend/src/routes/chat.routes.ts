@@ -7,12 +7,14 @@ import {
   searchChats,
   markMessagesRead,
 } from "../services/chat.service";
+import { broadcast } from "../lib/ws";
+import { parsePagination } from "../lib/pagination";
 
 const router = express.Router();
 
 router.get("/", isAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await getChats(req.token!.id);
+    const data = await getChats(req.token!.id, parsePagination(req.query));
     res.json(data);
   } catch (error) {
     next(error);
@@ -65,8 +67,14 @@ router.patch(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const chatId = Number(req.params.chat_id);
-      const data = await markMessagesRead(chatId, req.token!.id);
-      res.json(data);
+      const readerId = req.token!.id;
+      const { count, senderIds } = await markMessagesRead(chatId, readerId);
+
+      if (senderIds.length > 0) {
+        broadcast(senderIds, "messages_read", { chatId, readerId });
+      }
+
+      res.json({ count });
     } catch (error) {
       next(error);
     }

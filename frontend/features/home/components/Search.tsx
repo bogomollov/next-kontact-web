@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import InputSearch from "./ui/InputSearch";
+import InputSearch from "@/components/ui/InputSearch";
 import { SearchViewData } from "./SearchViewData";
 
 export function Search() {

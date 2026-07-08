@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { decrypt, SessionPayload } from "../lib/session";
-import { redis } from "../lib/redis";
+import { markOnline } from "../lib/redis";
 import { prisma } from "../lib/prisma";
 
 declare global {
@@ -11,29 +11,44 @@ declare global {
   }
 }
 
-export async function isAuth(req: Request, res: Response, next: NextFunction) {
-  const session = req.headers["authorization"]?.split(" ")[1];
-  const token = session || req.cookies.session;
+async function resolveToken(
+  req: Request,
+  res: Response
+): Promise<SessionPayload | null> {
+  const header = req.headers["authorization"]?.split(" ")[1];
+  const raw = header || req.cookies.session;
 
-  if (!token) {
+  if (!raw) {
     res.status(401).json({ message: "Требуется авторизация" });
-    return;
+    return null;
   }
 
-  try {
-    const payload = (await decrypt(token)) as SessionPayload;
+  const payload = await decrypt(raw);
+  if (!payload) {
+    res.status(403).json({ message: "Недействительный токен" });
+    return null;
+  }
 
-    if (!payload) {
-      res.status(403).json({ message: "Недействительный токен" });
-      return;
-    }
+  const account = await prisma.account.findUnique({
+    where: { user_id: payload.id },
+    select: { deletedAt: true },
+  });
+
+  if (!account || account.deletedAt !== null) {
+    res.status(403).json({ message: "Аккаунт удален" });
+    return null;
+  }
+
+  return payload;
+}
+
+export async function isAuth(req: Request, res: Response, next: NextFunction) {
+  try {
+    const payload = await resolveToken(req, res);
+    if (!payload) return;
 
     req.token = payload;
-
-    await redis.set(`user:${payload.id}:online`, "true", {
-      expiration: { type: "EX", value: 3 },
-    });
-
+    await markOnline(payload.id);
     next();
   } catch {
     res.status(403).json({ message: "Доступ запрещен: ошибка токена" });
@@ -41,37 +56,17 @@ export async function isAuth(req: Request, res: Response, next: NextFunction) {
 }
 
 export async function isAdmin(req: Request, res: Response, next: NextFunction) {
-  const session = req.headers["authorization"]?.split(" ")[1];
-  const token = session || req.cookies.session;
-
-  if (!token) {
-    res.status(401).json({ message: "Требуется авторизация" });
-    return;
-  }
-
   try {
-    const payload = (await decrypt(token)) as SessionPayload;
+    const payload = await resolveToken(req, res);
+    if (!payload) return;
 
-    if (!payload) {
-      res.status(403).json({ message: "Недействительный токен" });
-      return;
-    }
-
-    const adminAccount = await prisma.account.findFirst({
-      where: { user_id: payload.id, role: { name: "admin" } },
-    });
-
-    if (!adminAccount) {
+    if (payload.role !== "admin") {
       res.status(403).json({ message: "Доступ запрещен" });
       return;
     }
 
     req.token = payload;
-
-    await redis.set(`user:${payload.id}:online`, "true", {
-      expiration: { type: "EX", value: 3 },
-    });
-
+    await markOnline(payload.id);
     next();
   } catch {
     res.status(403).json({ message: "Доступ запрещен" });
