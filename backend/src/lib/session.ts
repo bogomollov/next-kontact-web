@@ -43,6 +43,7 @@ export async function createSession(
     httpOnly: true,
     expires: expiresAt,
     sameSite: "strict",
+    secure: env.NODE_ENV === "production",
     path: "/",
   });
 }
