@@ -7,9 +7,7 @@ COPY packages/shared /app/packages/shared
 
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-# @kontact/shared is not in the frontend lockfile (workspace alias only).
-# Remove it so that package.json and the lockfile agree, then do a clean install.
-RUN npm pkg delete dependencies.@kontact/shared && npm ci
+RUN npm ci
 
 # Stage 2: Development — source code is bind-mounted at runtime
 FROM deps AS development
