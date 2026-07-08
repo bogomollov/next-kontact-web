@@ -20,6 +20,7 @@ services:
       - ./backend/server.ts:/backend/server.ts
       - ./backend/src:/backend/src
       - ./backend/prisma:/backend/prisma
+      - ./backend/static:/backend/static
       - /backend/node_modules
       - /backend/generated
     ports:
