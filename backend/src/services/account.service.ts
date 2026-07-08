@@ -1,9 +1,19 @@
 import { compare, hash } from "bcrypt-ts";
 import { prisma } from "../lib/prisma";
 import { AppError } from "../middleware/error";
+import { paginate, PaginationParams } from "../lib/pagination";
 
-export async function getAllAccounts() {
-  return prisma.account.findMany({ omit: { password: true } });
+export async function getAllAccounts(pagination: PaginationParams) {
+  const [data, total] = await prisma.$transaction([
+    prisma.account.findMany({
+      omit: { password: true },
+      skip: pagination.skip,
+      take: pagination.take,
+    }),
+    prisma.account.count(),
+  ]);
+
+  return paginate(data, total, pagination);
 }
 
 export async function updateAccount(

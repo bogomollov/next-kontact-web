@@ -3,12 +3,13 @@ import { isAuth, isAdmin } from "../middleware/auth";
 import { getAllMessages, createMessage } from "../services/message.service";
 import { getChatMemberIds } from "../services/chat.service";
 import { broadcast } from "../lib/ws";
+import { parsePagination } from "../lib/pagination";
 
 const router = express.Router();
 
-router.get("/", isAdmin, async (_req: Request, res: Response, next: NextFunction) => {
+router.get("/", isAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await getAllMessages();
+    const data = await getAllMessages(parsePagination(req.query));
     res.json(data);
   } catch (error) {
     next(error);

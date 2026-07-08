@@ -1,8 +1,18 @@
 import { prisma } from "../lib/prisma";
 import { AppError } from "../middleware/error";
+import { paginate, PaginationParams } from "../lib/pagination";
 
-export async function getAllMessages() {
-  return prisma.message.findMany();
+export async function getAllMessages(pagination: PaginationParams) {
+  const [data, total] = await prisma.$transaction([
+    prisma.message.findMany({
+      skip: pagination.skip,
+      take: pagination.take,
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.message.count(),
+  ]);
+
+  return paginate(data, total, pagination);
 }
 
 export async function createMessage(

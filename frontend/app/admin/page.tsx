@@ -7,6 +7,7 @@ import {
   IMessage,
   IPosition,
   IUser,
+  PaginatedResponse,
 } from "@/types";
 import { Metadata } from "next";
 import { cookies } from "next/headers";
@@ -40,7 +41,9 @@ export default async function Admin() {
     },
     credentials: "include",
   });
-  const accounts: IAccount[] = (await accountsData.json()) as IAccount[];
+  const accounts: IAccount[] = (
+    (await accountsData.json()) as PaginatedResponse<IAccount>
+  ).data;
 
   const usersData = await apiFetch("/users", {
     headers: {
@@ -48,7 +51,9 @@ export default async function Admin() {
     },
     credentials: "include",
   });
-  const users: IUser[] = (await usersData.json()) as IUser[];
+  const users: IUser[] = (
+    (await usersData.json()) as PaginatedResponse<IUser>
+  ).data;
 
   const departmentsData = await apiFetch("/departments", {
     headers: {
@@ -56,8 +61,9 @@ export default async function Admin() {
     },
     credentials: "include",
   });
-  const departments: IDepartment[] =
-    (await departmentsData.json()) as IDepartment[];
+  const departments: IDepartment[] = (
+    (await departmentsData.json()) as PaginatedResponse<IDepartment>
+  ).data;
 
   const positionsData = await apiFetch("/positions", {
     headers: {
@@ -65,7 +71,9 @@ export default async function Admin() {
     },
     credentials: "include",
   });
-  const positions: IPosition[] = (await positionsData.json()) as IPosition[];
+  const positions: IPosition[] = (
+    (await positionsData.json()) as PaginatedResponse<IPosition>
+  ).data;
 
   const chatsData = await apiFetch("/chats", {
     headers: {
@@ -73,7 +81,9 @@ export default async function Admin() {
     },
     credentials: "include",
   });
-  const chats: IChat[] = (await chatsData.json()) as IChat[];
+  const chats: IChat[] = (
+    (await chatsData.json()) as PaginatedResponse<IChat>
+  ).data;
 
   const messagesData = await apiFetch("/messages", {
     headers: {
@@ -81,7 +91,9 @@ export default async function Admin() {
     },
     credentials: "include",
   });
-  const messages: IMessage[] = (await messagesData.json()) as IMessage[];
+  const messages: IMessage[] = (
+    (await messagesData.json()) as PaginatedResponse<IMessage>
+  ).data;
 
   return (
     <div className="flex min-h-screen flex-col items-center gap-4 bg-neutral-50 px-4 pb-20 sm:px-0">

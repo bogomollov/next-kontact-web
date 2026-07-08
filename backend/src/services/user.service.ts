@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma";
 import { AppError } from "../middleware/error";
+import { paginate, PaginationParams } from "../lib/pagination";
 
 export async function getMe(userId: number) {
   const account = await prisma.account.findUnique({
@@ -26,11 +27,16 @@ export async function getMe(userId: number) {
   if (!account)
     throw new AppError(401, "Ошибка при получении данных пользователя");
 
-  return { ...account, image: `/static/users/${account.id}.png` };
+  return { ...account, image: `/static/users/${userId}.png` };
 }
 
-export async function getAllUsers() {
-  return prisma.user.findMany();
+export async function getAllUsers(pagination: PaginationParams) {
+  const [data, total] = await prisma.$transaction([
+    prisma.user.findMany({ skip: pagination.skip, take: pagination.take }),
+    prisma.user.count(),
+  ]);
+
+  return paginate(data, total, pagination);
 }
 
 export async function updateUser(

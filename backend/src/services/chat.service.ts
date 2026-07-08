@@ -1,18 +1,28 @@
 import { prisma } from "../lib/prisma";
 import { redis } from "../lib/redis";
 import { AppError } from "../middleware/error";
+import { paginate, PaginationParams } from "../lib/pagination";
 
-export async function getChats(userId: number) {
-  const chats = await prisma.chat.findMany({
-    where: { members: { some: { user_id: userId } } },
-    include: {
-      members: { include: { user: true } },
-      messages: { where: { sender_id: { not: userId }, isRead: false } },
-    },
-    orderBy: { updatedAt: "desc" },
-  });
+const MESSAGE_HISTORY_LIMIT = 100;
 
-  return Promise.all(
+export async function getChats(userId: number, pagination: PaginationParams) {
+  const where = { members: { some: { user_id: userId } } };
+
+  const [chats, total] = await prisma.$transaction([
+    prisma.chat.findMany({
+      where,
+      include: {
+        members: { include: { user: true } },
+        messages: { where: { sender_id: { not: userId }, isRead: false } },
+      },
+      orderBy: { updatedAt: "desc" },
+      skip: pagination.skip,
+      take: pagination.take,
+    }),
+    prisma.chat.count({ where }),
+  ]);
+
+  const data = await Promise.all(
     chats.map(async (chat) => {
       let name: string | null = null;
       let image: string | null = null;
@@ -38,6 +48,8 @@ export async function getChats(userId: number) {
       };
     })
   );
+
+  return paginate(data, total, pagination);
 }
 
 export async function getChatById(chatId: number, userId: number) {
@@ -58,7 +70,8 @@ export async function getChatById(chatId: number, userId: number) {
             },
           },
         },
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: "desc" },
+        take: MESSAGE_HISTORY_LIMIT,
       },
     },
   });
@@ -83,7 +96,7 @@ export async function getChatById(chatId: number, userId: number) {
         ? `/static/chats/${chat.id}/${chat.id}.png`
         : `/static/users/${otherUser?.id}.png` || "/static/null.png",
     membersCount: chat.type === "group" ? chat.members.length : null,
-    messages: chat.messages,
+    messages: [...chat.messages].reverse(),
     ...(chat.type === "private" ? { is_online: isOnline } : undefined),
   };
 }
@@ -143,6 +156,7 @@ export async function searchChats(userId: number, query: string) {
       members: { include: { user: true } },
       messages: { where: { sender_id: { not: userId }, isRead: false } },
     },
+    take: 20,
   });
 
   return chats.map((chat) => {

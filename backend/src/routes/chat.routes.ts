@@ -8,12 +8,13 @@ import {
   markMessagesRead,
 } from "../services/chat.service";
 import { broadcast } from "../lib/ws";
+import { parsePagination } from "../lib/pagination";
 
 const router = express.Router();
 
 router.get("/", isAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await getChats(req.token!.id);
+    const data = await getChats(req.token!.id, parsePagination(req.query));
     res.json(data);
   } catch (error) {
     next(error);

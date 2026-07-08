@@ -3,7 +3,13 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import useSWR from "swr";
 import { apiFetch } from "@/lib/apiFetch";
-import { IChatListItem, IMe, IMessage, TChatListItem } from "@/types";
+import {
+  IChatListItem,
+  IMe,
+  IMessage,
+  PaginatedResponse,
+  TChatListItem,
+} from "@/types";
 import { LeftSidebar } from "@/features/dashboard/components/LeftSidebar";
 import { WebSocketProvider, useWs } from "@/lib/WebSocketContext";
 
@@ -29,7 +35,11 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
     revalidateOnFocus: true,
   });
 
-  const { data: initialChatList } = useSWR<IChatListItem[]>(`/chats`, getChats);
+  const { data: chatsResponse } = useSWR<PaginatedResponse<IChatListItem>>(
+    `/chats`,
+    getChats
+  );
+  const initialChatList = chatsResponse?.data;
 
   const [chatList, setChatList] = useState<TChatListItem[]>([]);
   const { subscribe } = useWs();

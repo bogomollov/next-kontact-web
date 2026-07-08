@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { IDepartment, IMe, IPosition } from "@/types";
+import { IDepartment, IMe, IPosition, PaginatedResponse } from "@/types";
 import { apiFetch } from "@/lib/apiFetch";
 import { cookies } from "next/headers";
 import UpdateUserForm from "@/features/profile/components/UpdateUserForm";
@@ -33,7 +33,9 @@ export default async function Profile() {
     },
     credentials: "include",
   });
-  const departments: IDepartment[] = await departmentData.json();
+  const departments: IDepartment[] = (
+    (await departmentData.json()) as PaginatedResponse<IDepartment>
+  ).data;
 
   const positionData = await apiFetch("/positions", {
     cache: "no-store",
@@ -42,7 +44,9 @@ export default async function Profile() {
     },
     credentials: "include",
   });
-  const positions: IPosition[] = await positionData.json();
+  const positions: IPosition[] = (
+    (await positionData.json()) as PaginatedResponse<IPosition>
+  ).data;
 
   if (!me || !departments || !positions) return null;
   const isAdmin = me.role_id === 2;
