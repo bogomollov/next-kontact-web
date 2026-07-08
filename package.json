@@ -10,14 +10,14 @@
     "dev": "concurrently \"cd frontend && next dev --turbopack\" \"cd backend && nodemon --watch src --exec npm run dev\""
   },
   "prisma": {
-    "seed": "ts-node backend/prisma/seed.ts"
+    "seed": "tsx backend/prisma/seed.ts"
   },
   "devDependencies": {
     "@types/node": "^22.14.1",
     "concurrently": "^10.0.3",
     "dotenv": "^16.5.0",
     "prisma": "^6.8.2",
-    "ts-node": "^10.9.2"
+    "tsx": "^4.19.2"
   },
   "dependencies": {
     "@prisma/client": "6.6.0"

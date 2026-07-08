@@ -1,5 +1,5 @@
 # Stage 1: Compile TypeScript and generate Prisma client
-FROM node:lts-slim AS builder
+FROM node:22-slim AS builder
 WORKDIR /backend
 COPY backend/package*.json ./
 COPY backend/prisma ./prisma
@@ -15,7 +15,7 @@ RUN npx prisma generate && \
     mv /backend/static /backend/build/static
 
 # Stage 2: Development — source code is bind-mounted at runtime
-FROM node:lts-slim AS development
+FROM node:22-slim AS development
 WORKDIR /backend
 RUN apt-get update && \
     apt-get install -y openssl && \
@@ -28,7 +28,7 @@ EXPOSE 3001
 CMD ["npm", "run", "dev"]
 
 # Stage 3: Production runtime
-FROM node:lts-slim AS production
+FROM node:22-slim AS production
 WORKDIR /backend
 RUN apt-get update && \
     apt-get install -y openssl && \
