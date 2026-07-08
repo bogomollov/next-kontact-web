@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently \"cd frontend && next dev --turbopack\" \"cd ../backend && nodemon --watch src --exec ts-node src/index.ts\""
+    "dev": "concurrently \"cd frontend && next dev --turbopack\" \"cd backend && nodemon --watch src --exec npm run dev\""
   },
   "prisma": {
     "seed": "ts-node backend/prisma/seed.ts"
