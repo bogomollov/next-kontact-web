@@ -31,6 +31,8 @@ export default async function Admin() {
     },
     credentials: "include",
   });
+  if (meData.status === 401 || meData.status === 403) redirect("/login");
+
   const me: IMe = await meData.json();
 
   if (me.role_id != 2) redirect("/dashboard");

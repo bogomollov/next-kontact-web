@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import useSWR from "swr";
 import { apiFetch } from "@/lib/apiFetch";
 import {
@@ -18,6 +18,9 @@ export async function getMe(url: string) {
     credentials: "include",
     cache: "no-store",
   });
+  if (res.status === 401 || res.status === 403) {
+    throw new Error("Unauthorized");
+  }
   return res.json();
 }
 
@@ -30,10 +33,16 @@ async function getChats(url: string) {
 }
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
-  const { data: me } = useSWR<IMe>(`/me`, getMe, {
+  const router = useRouter();
+  const { data: me, error: meError } = useSWR<IMe>(`/me`, getMe, {
     revalidateOnReconnect: true,
     revalidateOnFocus: true,
+    shouldRetryOnError: false,
   });
+
+  useEffect(() => {
+    if (meError) router.replace("/login");
+  }, [meError, router]);
 
   const { data: chatsResponse } = useSWR<PaginatedResponse<IChatListItem>>(
     `/chats`,

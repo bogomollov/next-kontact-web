@@ -2,6 +2,7 @@ import Link from "next/link";
 import { IDepartment, IMe, IPosition, PaginatedResponse } from "@/types";
 import { apiFetch } from "@/lib/apiFetch";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import UpdateUserForm from "@/features/profile/components/UpdateUserForm";
 import UpdateAccountForm from "@/features/profile/components/UpdateAccountForm";
 import UpdatePasswordForm from "@/features/profile/components/UpdatePasswordForm";
@@ -24,6 +25,9 @@ export default async function Profile() {
     },
     credentials: "include",
   });
+
+  if (meData.status === 401 || meData.status === 403) redirect("/login");
+
   const me: IMe = await meData.json();
 
   const departmentData = await apiFetch("/departments", {
