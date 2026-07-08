@@ -39,12 +39,19 @@ export async function register(body: unknown): Promise<SessionPayload> {
       },
     });
 
-    await tx.chatMember.createMany({
-      data: Array.from({ length: 12 }, (_, i) => ({
-        chat_id: i + 1,
-        user_id: createdUser.id,
-      })),
+    const groupChats = await tx.chat.findMany({
+      where: { type: "group" },
+      select: { id: true },
     });
+
+    if (groupChats.length > 0) {
+      await tx.chatMember.createMany({
+        data: groupChats.map((chat) => ({
+          chat_id: chat.id,
+          user_id: createdUser.id,
+        })),
+      });
+    }
 
     return createdUser;
   });
