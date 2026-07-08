@@ -4,7 +4,7 @@ dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
 import { env } from "./src/lib/env";
 import http from "http";
-import express, { Request, Response } from "express";
+import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { connectRedis } from "./src/lib/redis";
@@ -63,10 +63,10 @@ createWsServer(server);
 connectRedis()
   .then(() => {
     server.listen(3001, () => {
-      console.log(`Сервер запущен на http://localhost:3001`);
+      console.log(`Server starting on http://localhost:3001`);
     });
   })
   .catch((error) => {
-    console.error("Не удалось подключиться к Redis:", error);
+    console.error("Failed to connect to Redis:", error);
     process.exit(1);
   });

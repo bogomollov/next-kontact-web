@@ -19,7 +19,6 @@
     "bcrypt-ts": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "dotenv-cli": "^8.0.0",
     "express": "^5.1.0",
     "jose": "^6.0.10",
     "multer": "^2.1.1",
