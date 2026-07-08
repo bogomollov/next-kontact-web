@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { decrypt, SessionPayload } from "../lib/session";
-import { redis } from "../lib/redis";
+import { markOnline } from "../lib/redis";
 import { prisma } from "../lib/prisma";
 
 declare global {
@@ -40,12 +40,6 @@ async function resolveToken(
   }
 
   return payload;
-}
-
-async function markOnline(userId: number): Promise<void> {
-  await redis.set(`user:${userId}:online`, "true", {
-    expiration: { type: "EX", value: 3 },
-  });
 }
 
 export async function isAuth(req: Request, res: Response, next: NextFunction) {

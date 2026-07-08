@@ -1,17 +1,23 @@
 import { WebSocketServer, WebSocket } from "ws";
 import type { Server } from "http";
 import { decrypt } from "./session";
+import { markOnline } from "./redis";
 
-// userId → all open connections for that user (multiple tabs)
 const clients = new Map<number, Set<WebSocket>>();
 
 export function createWsServer(server: Server) {
   const wss = new WebSocketServer({ server, path: "/ws" });
 
-  // Heartbeat — keeps connections alive through proxies with idle timeouts
   const heartbeat = setInterval(() => {
-    wss.clients.forEach((ws) => {
-      if (ws.readyState === WebSocket.OPEN) ws.ping();
+    clients.forEach((sockets, userId) => {
+      let hasOpenConnection = false;
+      sockets.forEach((ws) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.ping();
+          hasOpenConnection = true;
+        }
+      });
+      if (hasOpenConnection) markOnline(userId);
     });
   }, 30_000);
 
@@ -26,6 +32,7 @@ export function createWsServer(server: Server) {
 
     if (!clients.has(userId)) clients.set(userId, new Set());
     clients.get(userId)!.add(ws);
+    await markOnline(userId);
 
     const cleanup = () => {
       const set = clients.get(userId);
