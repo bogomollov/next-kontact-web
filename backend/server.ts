@@ -11,6 +11,7 @@ import cookieParser from "cookie-parser";
 import { connectRedis } from "./src/lib/redis";
 import { createWsServer } from "./src/lib/ws";
 import { errorHandler } from "./src/middleware/error";
+import { rateLimit } from "./src/middleware/rateLimit";
 import generalRoutes from "./src/routes/general.routes";
 import userRoutes from "./src/routes/user.routes";
 import accountRoutes from "./src/routes/account.routes";
@@ -55,6 +56,10 @@ app.use(function (req, _res, next) {
   console.log(req.method, decodeURIComponent(req.url));
   next();
 });
+
+// Baseline abuse protection for all API traffic; auth routes layer on
+// tighter, endpoint-specific limits below.
+app.use("/api", rateLimit("api", 300, 60));
 
 app.use("/api", generalRoutes);
 app.use("/api/users", userRoutes);

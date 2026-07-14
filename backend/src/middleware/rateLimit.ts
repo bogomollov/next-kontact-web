@@ -6,16 +6,19 @@ export function rateLimit(prefix: string, maxRequests: number, windowSeconds: nu
     const ip = req.ip ?? req.socket.remoteAddress ?? "unknown";
     const key = `ratelimit:${prefix}:${ip}`;
 
+    let count: number;
     try {
-      const count = await redis.incr(key);
+      count = await redis.incr(key);
       if (count === 1) await redis.expire(key, windowSeconds);
-
-      if (count > maxRequests) {
-        res.status(429).json({ message: "Слишком много запросов. Попробуйте позже." });
-        return;
-      }
     } catch (err) {
       console.error("Rate limit check failed:", err);
+      res.status(503).json({ message: "Сервис временно недоступен" });
+      return;
+    }
+
+    if (count > maxRequests) {
+      res.status(429).json({ message: "Слишком много запросов. Попробуйте позже." });
+      return;
     }
 
     next();
