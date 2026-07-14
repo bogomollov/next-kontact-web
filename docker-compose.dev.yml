@@ -2,6 +2,9 @@ services:
   nginx:
     profiles: ["disabled"]
 
+  certbot:
+    profiles: ["disabled"]
+
   pgsql:
     ports:
       - "${DB_PORT:-5432}:5432"

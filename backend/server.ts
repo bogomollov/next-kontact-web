@@ -6,6 +6,7 @@ import { env } from "./src/lib/env";
 import http from "http";
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import { connectRedis } from "./src/lib/redis";
 import { createWsServer } from "./src/lib/ws";
@@ -19,6 +20,14 @@ import chatRoutes from "./src/routes/chat.routes";
 import messageRoutes from "./src/routes/message.routes";
 
 const app = express();
+
+app.use(
+  helmet({
+    // /static images are fetched cross-origin (localhost:3001) in dev, and
+    // nginx puts everything on one origin in prod anyway.
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 
 app.use(
   cors({
