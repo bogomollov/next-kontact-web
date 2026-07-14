@@ -15,6 +15,7 @@ import { requestLogger } from "./src/middleware/requestLogger";
 import { errorHandler } from "./src/middleware/error";
 import { rateLimit } from "./src/middleware/rateLimit";
 import healthRoutes from "./src/routes/health.routes";
+import errorReportRoutes from "./src/routes/errorReport.routes";
 import generalRoutes from "./src/routes/general.routes";
 import userRoutes from "./src/routes/user.routes";
 import accountRoutes from "./src/routes/account.routes";
@@ -66,6 +67,7 @@ app.use("/health", healthRoutes);
 app.use("/api", rateLimit("api", 300, 60));
 
 app.use("/api", generalRoutes);
+app.use("/api/errors", errorReportRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/accounts", accountRoutes);
 app.use("/api/admin", adminRoutes);
