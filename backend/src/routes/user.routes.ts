@@ -36,7 +36,7 @@ router.patch("/:id", isAuth, upload, async (req: Request, res: Response, next: N
     const imageFile = req.file as Express.Multer.File | undefined;
 
     const { firstName, lastName, middleName, department_id, position_id } =
-      req.body;
+      req.body ?? {};
 
     if (
       !firstName &&
