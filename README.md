@@ -130,4 +130,4 @@ npx prisma studio
 
 Copyright (c) 2026-present Bogdan Bogomolov<br>
 
-Проект распространяется под лицензией MIT. Дополнительную информацию см. в [LICENSE](LICENSE)
+Проект распространяется под лицензией Apache 2.0. Дополнительную информацию см. в [LICENSE](LICENSE)
