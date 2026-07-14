@@ -1,4 +1,5 @@
 node_modules
+coverage
 
 # Env files with real credentials — only .env.example is tracked
 .env

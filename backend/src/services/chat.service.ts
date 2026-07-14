@@ -94,7 +94,9 @@ export async function getChatById(chatId: number, userId: number) {
     image:
       chat.type === "group"
         ? `/static/chats/${chat.id}/${chat.id}.png`
-        : `/static/users/${otherUser?.id}.png` || "/static/null.png",
+        : otherUser
+          ? `/static/users/${otherUser.id}.png`
+          : "/static/null.png",
     membersCount: chat.type === "group" ? chat.members.length : null,
     messages: [...chat.messages].reverse(),
     ...(chat.type === "private" ? { is_online: isOnline } : undefined),
@@ -168,7 +170,7 @@ export async function searchChats(userId: number, query: string) {
       name = other
         ? `${other.firstName} ${other.lastName}`
         : "Удаленный чат";
-      image = `/static/users/${other?.id}.png` || "/static/null.png";
+      image = other ? `/static/users/${other.id}.png` : "/static/null.png";
     } else if (chat.type === "group" && chat.name) {
       name = chat.name;
       image = `/static/chats/${chat.id}/${chat.id}.png`;
