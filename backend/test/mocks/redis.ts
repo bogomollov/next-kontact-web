@@ -5,6 +5,7 @@ export const redisMock = {
   set: vi.fn(),
   incr: vi.fn(),
   expire: vi.fn(),
+  ping: vi.fn(),
   isOpen: true,
   connect: vi.fn(),
   on: vi.fn(),
@@ -20,6 +21,7 @@ export function resetRedisMock() {
   // aren't blocked unless a test explicitly overrides this to hit the 429 path.
   redisMock.incr.mockReset().mockResolvedValue(1);
   redisMock.expire.mockReset();
+  redisMock.ping.mockReset().mockResolvedValue("PONG");
   redisMock.connect.mockReset();
   markOnlineMock.mockReset();
   connectRedisMock.mockReset();

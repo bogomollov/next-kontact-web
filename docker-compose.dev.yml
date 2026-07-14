@@ -2,6 +2,9 @@ services:
   nginx:
     profiles: ["disabled"]
 
+  certbot:
+    profiles: ["disabled"]
+
   pgsql:
     ports:
       - "${DB_PORT:-5432}:5432"
@@ -15,7 +18,7 @@ services:
       target: development
     container_name: kontact-backend-dev
     env_file: .env.dev
-    command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm run dev"
+    command: sh -c "npx prisma migrate deploy && npm run seed:dev && npm run dev"
     volumes:
       - ./backend/server.ts:/backend/server.ts
       - ./backend/src:/backend/src

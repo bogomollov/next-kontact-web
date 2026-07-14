@@ -63,6 +63,13 @@ export const AccountFormSchema = z.object({
   phone: z.string().optional(),
 });
 
+export const ClientErrorReportSchema = z.object({
+  message: z.string().trim().min(1).max(2000),
+  stack: z.string().max(8000).optional(),
+  digest: z.string().max(200).optional(),
+  url: z.string().max(2000).optional(),
+});
+
 export const PasswordFormSchema = z.object({
   account_id: z.string().trim(),
   currentPassword: z

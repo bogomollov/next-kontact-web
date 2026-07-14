@@ -6,10 +6,16 @@ import { env } from "./src/lib/env";
 import http from "http";
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import { connectRedis } from "./src/lib/redis";
 import { createWsServer } from "./src/lib/ws";
+import { logger } from "./src/lib/logger";
+import { requestLogger } from "./src/middleware/requestLogger";
 import { errorHandler } from "./src/middleware/error";
+import { rateLimit } from "./src/middleware/rateLimit";
+import healthRoutes from "./src/routes/health.routes";
+import errorReportRoutes from "./src/routes/errorReport.routes";
 import generalRoutes from "./src/routes/general.routes";
 import userRoutes from "./src/routes/user.routes";
 import accountRoutes from "./src/routes/account.routes";
@@ -19,6 +25,16 @@ import chatRoutes from "./src/routes/chat.routes";
 import messageRoutes from "./src/routes/message.routes";
 
 const app = express();
+
+app.use(requestLogger);
+
+app.use(
+  helmet({
+    // /static images are fetched cross-origin (localhost:3001) in dev, and
+    // nginx puts everything on one origin in prod anyway.
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 
 app.use(
   cors({
@@ -42,12 +58,16 @@ app.use(
   })
 );
 
-app.use(function (req, _res, next) {
-  console.log(req.method, decodeURIComponent(req.url));
-  next();
-});
+// Unauthenticated and unlogged so container healthchecks stay quiet and
+// are never rejected by the API rate limiter below.
+app.use("/health", healthRoutes);
+
+// Baseline abuse protection for all API traffic; auth routes layer on
+// tighter, endpoint-specific limits below.
+app.use("/api", rateLimit("api", 300, 60));
 
 app.use("/api", generalRoutes);
+app.use("/api/errors", errorReportRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/accounts", accountRoutes);
 app.use("/api/admin", adminRoutes);
@@ -63,10 +83,10 @@ createWsServer(server);
 connectRedis()
   .then(() => {
     server.listen(3001, () => {
-      console.log(`Server starting on http://localhost:3001`);
+      logger.info({ port: 3001 }, "Server started");
     });
   })
   .catch((error) => {
-    console.error("Failed to connect to Redis:", error);
+    logger.error({ err: error }, "Failed to connect to Redis");
     process.exit(1);
   });

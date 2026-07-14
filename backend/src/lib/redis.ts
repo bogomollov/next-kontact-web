@@ -1,9 +1,10 @@
 import { createClient } from "redis";
 import { env } from "./env";
+import { logger } from "./logger";
 
 export const redis = createClient({
   url: env.REDIS_URL,
-}).on("error", (error) => console.error("Redis error:", error));
+}).on("error", (error) => logger.error({ err: error }, "Redis client error"));
 
 export async function connectRedis() {
   if (!redis.isOpen) {

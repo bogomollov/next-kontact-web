@@ -1,6 +1,7 @@
 import { Golos_Text } from "next/font/google";
 import "./app.css";
 import { Metadata } from "next";
+import GlobalErrorListener from "@/components/GlobalErrorListener";
 
 const fontSans = Golos_Text({
   variable: "--font-sans",
@@ -20,7 +21,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru">
-      <body className={`${fontSans.className} antialiased`}>{children}</body>
+      <body className={`${fontSans.className} antialiased`}>
+        <GlobalErrorListener />
+        {children}
+      </body>
     </html>
   );
 }

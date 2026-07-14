@@ -1,5 +1,5 @@
 # Stage 1: Install frontend dependencies using the frontend's own lockfile
-FROM node:lts AS deps
+FROM node:22-slim AS deps
 
 # packages/shared lives at ../packages/shared relative to the frontend dir.
 # All code imports it via the @/types tsconfig path alias — no npm resolution needed.
@@ -30,7 +30,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # Stage 4: Production runtime
-FROM node:lts AS production
+FROM node:22-slim AS production
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 WORKDIR /app/frontend

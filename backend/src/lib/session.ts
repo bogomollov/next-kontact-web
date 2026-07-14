@@ -1,6 +1,7 @@
 import { Response } from "express";
 import { JWTPayload, jwtVerify, SignJWT } from "jose";
 import { env } from "./env";
+import { logger } from "./logger";
 
 const encodedAccessKey = new TextEncoder().encode(env.ACCESS_SECRET);
 const TOKEN_TTL_MS = 3 * 24 * 60 * 60 * 1000;
@@ -28,7 +29,7 @@ export async function decrypt(session = ""): Promise<SessionPayload | null> {
     });
     return payload as SessionPayload;
   } catch (error) {
-    console.log(`Failed to verify session: ${error}`);
+    logger.debug({ err: error }, "Failed to verify session");
     return null;
   }
 }
