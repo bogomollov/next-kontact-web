@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { redis } from "../lib/redis";
+import { logger } from "../lib/logger";
 
 const router = express.Router();
 
@@ -24,7 +25,7 @@ router.get("/", async (_req: Request, res: Response) => {
     await withTimeout(redis.ping());
     res.status(200).json({ status: "ok" });
   } catch (error) {
-    console.error("Health check failed:", error);
+    logger.error({ err: error }, "Health check failed");
     res.status(503).json({ status: "error" });
   }
 });

@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
+import { logger } from "../lib/logger";
 
 export class AppError extends Error {
   constructor(
@@ -14,7 +15,7 @@ export class AppError extends Error {
 
 export function errorHandler(
   err: unknown,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction
 ) {
@@ -37,6 +38,6 @@ export function errorHandler(
     return;
   }
 
-  console.error(err);
+  logger.error({ err, reqId: req.id }, "Unhandled error");
   res.status(500).json({ message: "Ошибка сервера" });
 }

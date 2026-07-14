@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { redis } from "../lib/redis";
+import { logger } from "../lib/logger";
 
 export function rateLimit(prefix: string, maxRequests: number, windowSeconds: number) {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -11,7 +12,7 @@ export function rateLimit(prefix: string, maxRequests: number, windowSeconds: nu
       count = await redis.incr(key);
       if (count === 1) await redis.expire(key, windowSeconds);
     } catch (err) {
-      console.error("Rate limit check failed:", err);
+      logger.error({ err, reqId: req.id }, "Rate limit check failed");
       res.status(503).json({ message: "Сервис временно недоступен" });
       return;
     }

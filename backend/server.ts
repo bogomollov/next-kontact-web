@@ -10,6 +10,8 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import { connectRedis } from "./src/lib/redis";
 import { createWsServer } from "./src/lib/ws";
+import { logger } from "./src/lib/logger";
+import { requestLogger } from "./src/middleware/requestLogger";
 import { errorHandler } from "./src/middleware/error";
 import { rateLimit } from "./src/middleware/rateLimit";
 import healthRoutes from "./src/routes/health.routes";
@@ -22,6 +24,8 @@ import chatRoutes from "./src/routes/chat.routes";
 import messageRoutes from "./src/routes/message.routes";
 
 const app = express();
+
+app.use(requestLogger);
 
 app.use(
   helmet({
@@ -57,11 +61,6 @@ app.use(
 // are never rejected by the API rate limiter below.
 app.use("/health", healthRoutes);
 
-app.use(function (req, _res, next) {
-  console.log(req.method, decodeURIComponent(req.url));
-  next();
-});
-
 // Baseline abuse protection for all API traffic; auth routes layer on
 // tighter, endpoint-specific limits below.
 app.use("/api", rateLimit("api", 300, 60));
@@ -82,10 +81,10 @@ createWsServer(server);
 connectRedis()
   .then(() => {
     server.listen(3001, () => {
-      console.log(`Server starting on http://localhost:3001`);
+      logger.info({ port: 3001 }, "Server started");
     });
   })
   .catch((error) => {
-    console.error("Failed to connect to Redis:", error);
+    logger.error({ err: error }, "Failed to connect to Redis");
     process.exit(1);
   });
