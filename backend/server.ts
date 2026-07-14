@@ -12,6 +12,7 @@ import { connectRedis } from "./src/lib/redis";
 import { createWsServer } from "./src/lib/ws";
 import { errorHandler } from "./src/middleware/error";
 import { rateLimit } from "./src/middleware/rateLimit";
+import healthRoutes from "./src/routes/health.routes";
 import generalRoutes from "./src/routes/general.routes";
 import userRoutes from "./src/routes/user.routes";
 import accountRoutes from "./src/routes/account.routes";
@@ -51,6 +52,10 @@ app.use(
     },
   })
 );
+
+// Unauthenticated and unlogged so container healthchecks stay quiet and
+// are never rejected by the API rate limiter below.
+app.use("/health", healthRoutes);
 
 app.use(function (req, _res, next) {
   console.log(req.method, decodeURIComponent(req.url));
